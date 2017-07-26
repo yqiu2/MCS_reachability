@@ -31,10 +31,6 @@ public class Location {
 	public int getY() {
 		return y;
 	}
-
-	public static int L1Dist(Location loc1, Location loc2)	{		
-		return Math.abs(loc1.x - loc2.x)+ Math.abs(loc1.y - loc2.y);
-	}
 	
 	public static String toStringFormat(){
 		return "location = (x,y)";

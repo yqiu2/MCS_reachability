@@ -1,8 +1,15 @@
+import java.util.ArrayList;
+
 /*A task*/
 public class Task {
 	private Location location;
 	private Valuation valuation; // change this to a valuation function that gives a value at a certain time
 	private boolean assigned = false;
+	
+	public void addAccessiblePath(Itinerary individual, ArrayList<Journey> paths) {
+		
+	}
+	
 
 	public Task(Location loc, Valuation valuation){
 		if (location != null && valuation != null) { 
@@ -21,6 +28,9 @@ public class Task {
 		
 		}
 	}
+	public int getValueAt(int time) {
+		return this.valuation.getValuation(time);
+	}
 	
 	public Location getLocation() {
 		return location;
@@ -37,12 +47,16 @@ public class Task {
 	}
 	
 	public String toString(){
-		return location.toString()+"\t:"+valuation.toString()+"\t:"+assigned+"\n";
+		//return location.toString()+"\t:"+valuation.toString()+"\t:"+assigned+"\n";
+		return "["+location.toString() +"@"+valuation.getFirstTime() + "]"; 
 	}
 
 	public Task MakeACopy() {
 		Task theCopy = new Task(location, valuation);
 		return theCopy;
 	}
+	
+	
+	
 
 }

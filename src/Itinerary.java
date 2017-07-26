@@ -6,7 +6,8 @@ public class Itinerary {
 	private int timeFlexibility;
 
 	private int endTime; // Calculated by startTime + minTravelTime +
-							// flexibility
+	
+	// flexibility
 	/**
 	 * generates an itinerary
 	 * @param startLoc Location that agent wants to start at
@@ -21,7 +22,7 @@ public class Itinerary {
 			this.startTime = startTime;
 			this.timeFlexibility = timeFlexibility;
 			
-			this.endTime = startTime + Location.L1Dist(startLoc, endLoc) + timeFlexibility;
+			this.endTime = startTime + Field.L1Dist(startLoc, endLoc) + timeFlexibility;
 		} else {
 			// throw exception ???
 		}
@@ -36,9 +37,17 @@ public class Itinerary {
 		str += startLoc.toString() + "@" + startTime;
 		str += " ->\t";
 		str += endLoc.toString() + "@" + endTime;
-		str += "\t:" + Location.L1Dist(startLoc, endLoc);
+		str += "\t:" + Field.L1Dist(startLoc, endLoc);
 		str += "\t:" + timeFlexibility;
 		str += "\n";
+		return str;
+	}
+	
+	public String shortToString() {
+		String str = "";
+		str += startLoc.toString() + "@" + startTime;
+		str += " ->";
+		str += endLoc.toString() + "@" + endTime;
 		return str;
 	}
 
@@ -65,6 +74,10 @@ public class Itinerary {
 	
 	public void setStartTime(int startTime) {
 		this.startTime = startTime;
+	}
+	
+	public int getEndTime() {
+		return endTime;
 	}
 	
 	public int getTimeFlexibility() {

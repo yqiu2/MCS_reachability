@@ -4,8 +4,11 @@ public class Valuation {
 	private functions function;
 	private int maxVal;
 	
-	private int firstTime; // the first time at which you can get maxVal payment
-	private int lastTime; // the lastTime at which you can get maxVal payment
+	private int firstMaxPayTime; // the first time at which you can get maxVal payment
+	private int lastMaxPayTime; // the lastTime at which you can get maxVal payment
+	
+	private int beginPayTime; // the first time at which you get any payment
+	private int endPayTime; // the last time at which you get any payment 
 	// for use in triangular and trapezoidal 
 	private double upSlope; 
 	private double downSlope;
@@ -13,101 +16,147 @@ public class Valuation {
 	public Valuation () {
 		function = functions.SinglePoint;
 		maxVal = 0;
-		firstTime = -1;
+		firstMaxPayTime = -1;
 	}
 	
 	public Valuation(int time){
 		function = functions.SinglePoint;
 		maxVal = 1;
-		firstTime = time;
+		firstMaxPayTime = time;
+		lastMaxPayTime = time;
+		beginPayTime = time;
+		endPayTime = time;
 	}
 
 	public Valuation(int value, int time){
 		function = functions.SinglePoint;
 		maxVal = value;
-		firstTime = time;
+		firstMaxPayTime = time;
+		lastMaxPayTime = time;
+		beginPayTime = time;
+		endPayTime = time;
 	}
 	
 	public void setSinglePoint(int value, int time){
 		function = functions.SinglePoint;
 		maxVal = value;
-		firstTime = time;
+		firstMaxPayTime = time;
+		beginPayTime = time;
+		endPayTime = time;
 	}
 
 	public void setRectangle(int value, int firstTime, int lastTime) {
 		function = functions.Rectangle;
 		maxVal = value;
-		this.firstTime = firstTime;
-		this.lastTime = lastTime;
+		this.firstMaxPayTime = firstTime;
+		this.lastMaxPayTime = lastTime;
+		beginPayTime = firstTime;
+		endPayTime = lastTime;	
 	}
 	
 	public void setTriangle(int value, int time, double slope){
 		function = functions.Triangle;
 		maxVal = value;
-		firstTime = time;
+		firstMaxPayTime = time;
 		upSlope = Math.abs(slope);
 		downSlope = -upSlope;  // not sure if you can do negatives like this ??
+		beginPayTime = time;
+		while (getValuation(beginPayTime) > 0) {
+			beginPayTime--;
+		}
+		beginPayTime = (beginPayTime < 0) ? 0 : beginPayTime; 
+		endPayTime = time;
+		while (getValuation(endPayTime) > 0) {
+			endPayTime++;
+		}
 	}
 	
 	public void setTriangle(int value, int time, double upSlope, double downSlope){ 
 		function = functions.Triangle;
 		maxVal = value;
-		firstTime = time;
+		firstMaxPayTime = time;
 		upSlope = Math.abs(upSlope);
 		downSlope = -Math.abs(downSlope); 
+		beginPayTime = time;
+		while (getValuation(beginPayTime) > 0) {
+			beginPayTime--;
+		}
+		beginPayTime = (beginPayTime < 0) ? 0 : beginPayTime; 
+		endPayTime = time;
+		while (getValuation(endPayTime) > 0) {
+			endPayTime++;
+		}
 	}
 	
 	public void setTrapezoid(int value, int firstTime, int lastTime, double slope){
 		function = functions.Triangle;
 		maxVal = value;
-		this.firstTime = firstTime;
-		this.lastTime = lastTime;
+		this.firstMaxPayTime = firstTime;
+		this.lastMaxPayTime = lastTime;
 		upSlope = Math.abs(slope);
 		downSlope = -upSlope;  // not sure if you can do negatives like this ??
+		beginPayTime = firstTime;
+		while (getValuation(beginPayTime) > 0) {
+			beginPayTime--;
+		}
+		beginPayTime = (beginPayTime < 0) ? 0 : beginPayTime; 
+		endPayTime = lastTime;
+		while (getValuation(endPayTime) > 0) {
+			endPayTime++;
+		}
 	}
 	
 	public void setTrapezoid(int value, int firstTime, int lastTime, double upSlope, double downSlope){ 
 		function = functions.Triangle;
 		maxVal = value;
-		this.firstTime = firstTime;
-		this.lastTime = lastTime;
+		this.firstMaxPayTime = firstTime;
+		this.lastMaxPayTime = lastTime;
 		upSlope = Math.abs(upSlope);
 		downSlope = -Math.abs(downSlope); 
+		beginPayTime = firstTime;
+		while (getValuation(beginPayTime) > 0) {
+			beginPayTime--;
+		}
+		beginPayTime = (beginPayTime < 0) ? 0 : beginPayTime; 
+		endPayTime = lastTime;
+		while (getValuation(endPayTime) > 0) {
+			endPayTime++;
+		}
 	}
 	
 	public int getValuation(int time) {
 		switch (function) {
 		case Rectangle:
-			if (firstTime <= time || time <= lastTime) {
+			if (firstMaxPayTime <= time || time <= lastMaxPayTime) {
 				return maxVal;
 			}
 			break;
 		case SinglePoint:
-			if (time == firstTime) {
+			if (time == firstMaxPayTime) {
 				return maxVal;
 			}
 			break;
 		case Trapezoid:
-			if (firstTime <= time || time <= lastTime) {
+			if (firstMaxPayTime <= time || time <= lastMaxPayTime) {
 				return maxVal;
-			} else if (time < firstTime) {
-				double tDiff = (double)(firstTime - time);
+			} else if (time < firstMaxPayTime) {
+				double tDiff = (double)(firstMaxPayTime - time);
 				int valuation = (int)(maxVal - upSlope*tDiff);
 				return (valuation <0)? 0 : valuation;
 			} else {
-				double tDiff = (double)(time-lastTime);
+				double tDiff = (double)(time-lastMaxPayTime);
 				int valuation = (int)(maxVal + downSlope*tDiff);
 				return (valuation <0)? 0 : valuation;
 			}
 		case Triangle:
-			if (firstTime == time) {
+			if (firstMaxPayTime == time) {
 				return maxVal;
-			} else if (time < firstTime) {
-				double tDiff = (double)(firstTime - time);
+			} else if (time < firstMaxPayTime) {
+				double tDiff = (double)(firstMaxPayTime - time);
 				int valuation = (int)(maxVal - upSlope*tDiff);
 				return (valuation <0)? 0 : valuation;
 			} else {
-				double tDiff = (double)(time-lastTime);
+				double tDiff = (double)(time-lastMaxPayTime);
 				int valuation = (int)(maxVal + downSlope*tDiff);
 				return (valuation <0)? 0 : valuation;
 			}
@@ -115,26 +164,34 @@ public class Valuation {
 			break;		
 		}
 		
-		
 		return 0;
 	}
+	
+	public int getBeginPayTime() {
+		return beginPayTime;
+	}
+
+	public int getEndPayTime() {
+		return endPayTime;
+	}
+	
 	
 	@Override
 	public String toString() {
 		switch (function) {
 		case Rectangle:
-			return "Valuation [shape=" + function + ", maxVal=" + maxVal + ", firstTime=" + firstTime + ", lastTime="
-			+ lastTime + "]";
+			return "Valuation [shape=" + function + ", maxVal=" + maxVal + ", firstTime=" + firstMaxPayTime + ", lastTime="
+			+ lastMaxPayTime + "]";
 			
 		case SinglePoint:
-			return "Valuation [shape=" + function + ", maxVal=" + maxVal + ", targetTime=" + firstTime + "]";
+			return "Valuation [shape=" + function + ", maxVal=" + maxVal + ", targetTime=" + firstMaxPayTime + "]";
 			
 		case Trapezoid:
-			return "Valuation [shape=" + function + ", maxVal=" + maxVal + ", firstTime=" + firstTime + ", lastTime="
-			+ lastTime + ", upSlope=" + upSlope + ", downSlope=" + downSlope + "]";
+			return "Valuation [shape=" + function + ", maxVal=" + maxVal + ", firstTime=" + firstMaxPayTime + ", lastTime="
+			+ lastMaxPayTime + ", upSlope=" + upSlope + ", downSlope=" + downSlope + "]";
 			
 		case Triangle:
-			return "Valuation [shape=" + function + ", maxVal=" + maxVal + ", targetTime=" + firstTime + ", upSlope=" 
+			return "Valuation [shape=" + function + ", maxVal=" + maxVal + ", targetTime=" + firstMaxPayTime + ", upSlope=" 
 		+ upSlope + ", downSlope=" + downSlope + "]";
 			
 		default:
@@ -167,28 +224,28 @@ public class Valuation {
 	 * @return the firstTime
 	 */
 	public int getFirstTime() {
-		return firstTime;
+		return firstMaxPayTime;
 	}
 
 	/**
 	 * @param firstTime the firstTime to set
 	 */
 	public void setFirstTime(int firstTime) {
-		this.firstTime = firstTime;
+		this.firstMaxPayTime = firstTime;
 	}
 
 	/**
 	 * @return the lastTime
 	 */
 	public int getLastTime() {
-		return lastTime;
+		return lastMaxPayTime;
 	}
 
 	/**
 	 * @param lastTime the lastTime to set
 	 */
 	public void setLastTime(int lastTime) {
-		this.lastTime = lastTime;
+		this.lastMaxPayTime = lastTime;
 	}
 
 	/**

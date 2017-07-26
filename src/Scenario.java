@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Random;
 
 public class Scenario {
@@ -9,6 +10,11 @@ public class Scenario {
 	private ArrayList<Task> tasks;
 
 	private Location maxLocation;
+	private Field graph; 
+	
+	// whether accessibility of tasks has been calculated with 
+	// k number of optimal paths
+	private int isCalculatedAccessibilities;
 
 	private Random rand = new Random();
 
@@ -16,11 +22,14 @@ public class Scenario {
 		itineraries = new ArrayList<Itinerary>();
 		tasks = new ArrayList<Task>();
 		maxLocation = new Location(20, 30);
+		graph = new Field(maxLocation);
+		isCalculatedAccessibilities = 0;
 	}
 
 	public Scenario(int maxX, int maxY) {
 		this();
 		maxLocation = new Location(maxX, maxY);
+		graph = new Field(maxLocation);
 	}
 
 	public String toString() {
@@ -136,6 +145,12 @@ public class Scenario {
 			this.itineraries.add(itinerary);
 		}
 	}
+	
+	public void addItinerary(int startLocX, int startLocY, int endLocX, int endLocY, int startTime, int timeFlex){
+		Itinerary itinerary = new Itinerary(new Location(startLocX, startLocY), new Location(endLocX, endLocY), startTime, timeFlex);
+		this.itineraries.add(itinerary);		
+	}
+	
 
 	private String printTasksParameters(int numTasks, Distributions locDistro, Distributions endLocDistro, Distributions timeDistro,
 			Distributions timeFlexDistro, int maxPayout, int timeMax, int timeFlexMax, int locStdDev, int endLocStdDev,
@@ -183,7 +198,7 @@ public class Scenario {
 				int startTimeCenter = timeCenters.get(rand.nextInt(timeCenters.size() - 1));
 				time = (int) (timeStdDev * rand.nextGaussian()) + startTimeCenter;
 				time = (time > timeMax) ? timeMax : time;
-				time = (time < 0) ? 0 : time;
+				time = (time < 1) ? 1 : time;
 			} else {
 				System.out.println(
 						"startTime uniform random distribution = 0 \nnormal distribution = 1 and provide list of centers");
@@ -192,10 +207,43 @@ public class Scenario {
 			int payout = (maxPayout > 0) ? maxPayout : 1;
 			Task task = new Task(loc, time, payout);
 			this.tasks.add(task);
-
+			graph.addTask(task);
+			
 		}
+	}	
+	
+	public void addTask(int locX, int locY, int time, int payout){
+		Task task = new Task(new Location(locX, locY), time, payout);
+		this.tasks.add(task);
+		graph.addTask(task);	
 	}
-
+	
+	
+	public HashMap<Task, Integer> returnPathAccessbilities(int k) {
+		if (isCalculatedAccessibilities != k){
+			this.graph.calculateAccessibility(this.itineraries, k);
+			isCalculatedAccessibilities = k;
+		}
+		return this.graph.returnPathAccessbilities();	
+	}
+	
+	public String AccessibilitiesToString(HashMap<Task, Integer> agentAccessibilityHashMap, HashMap<Task, Integer> pathAccessibilityHashMap) {
+		String str = "task: \tagentAccess: \tpathAccess:\n";
+		for (Task task: tasks) {
+			str += task.toString()+"\t"+agentAccessibilityHashMap.get(task)+"\t"+pathAccessibilityHashMap.get(task)+"\n";
+		}
+		return str;
+	}
+	public HashMap<Task, Integer> returnAgentAccessbilities(int k) {
+		if (isCalculatedAccessibilities != k){
+			this.graph.calculateAccessibility(this.itineraries, k);
+			isCalculatedAccessibilities = k;
+		}
+		return this.graph.returnAgentAccessbilities();		
+	}
+	
+	
+	
 	public int findNumberTasksAssigned(){
 		int numAssigned = 0; 
 		for (Task t : tasks){
@@ -204,7 +252,7 @@ public class Scenario {
 			}
 		}
 		return numAssigned;
-	}
+	}	
 	
 
 	public ArrayList<Itinerary> getItineraries() {
